@@ -1,0 +1,245 @@
+/*
+ * This file is part of the Online Bakery Management System.
+ * 
+ * Copyright (c) 2025 Niral Patel
+ * 
+ * This project is licensed under the MIT License.
+ * See the LICENSE file for more details.
+ */
+
+<?php
+session_start();
+error_reporting(0);
+include_once('includes/dbconnection.php');
+if (strlen($_SESSION['fosuid'] == 0)) {
+	header('location:logout.php');
+} else {
+	// deleting product from cart
+	if (isset($_GET['delid'])) {
+		$rid = intval($_GET['delid']);
+		$query = mysqli_query($con, "delete from tblorders where ID='$rid'");
+		echo "<script>alert('Data deleted');</script>";
+		echo "<script>window.location.href = 'cart.php'</script>";
+	}
+
+	//placing order
+
+	if (isset($_POST['placeorder'])) {
+		//getting address
+		$fnaobno = $_POST['flatbldgnumber'];
+		$street = $_POST['streename'];
+		$area = $_POST['area'];
+		$lndmark = $_POST['landmark'];
+		$city = $_POST['city'];
+		$userid = $_SESSION['fosuid'];
+
+		//genrating order number
+		$orderno = mt_rand(100000000, 999999999);
+		$query = "update tblorders set OrderNumber='$orderno',IsOrderPlaced='1' where UserId='$userid' and IsOrderPlaced is null;";
+		$query .= "insert into tblorderaddresses(UserId,Ordernumber,Flatnobuldngno,StreetName,Area,Landmark,City) values('$userid','$orderno','$fnaobno','$street','$area','$lndmark','$city');";
+
+		$result = mysqli_multi_query($con, $query);
+		if ($result) {
+
+			echo '<script>alert("Your order placed successfully. Order number is "+"' . $orderno . '")</script>';
+			echo "<script>window.location.href='my-order.php'</script>";
+		}
+	}
+
+?>
+	<!DOCTYPE html>
+	<html lang="en">
+
+	<head>
+
+		<title> Bakery House || cart Page</title>
+
+
+		<link href="css/font-awesome.min.css" rel="stylesheet">
+		<link href="vendors/linearicons/style.css" rel="stylesheet">
+		<link href="vendors/flat-icon/flaticon.css" rel="stylesheet">
+		<link href="vendors/stroke-icon/style.css" rel="stylesheet">
+
+		<link href="css/bootstrap.min.css" rel="stylesheet">
+
+		<!-- Rev slider css -->
+		<link href="vendors/revolution/css/settings.css" rel="stylesheet">
+		<link href="vendors/revolution/css/layers.css" rel="stylesheet">
+		<link href="vendors/revolution/css/navigation.css" rel="stylesheet">
+		<link href="vendors/animate-css/animate.css" rel="stylesheet">
+
+
+		<link href="vendors/owl-carousel/owl.carousel.min.css" rel="stylesheet">
+		<link href="vendors/magnifc-popup/magnific-popup.css" rel="stylesheet">
+		<link href="vendors/jquery-ui/jquery-ui.min.css" rel="stylesheet">
+		<link href="vendors/nice-select/css/nice-select.css" rel="stylesheet">
+
+		<link href="css/style.css" rel="stylesheet">
+		<link href="css/responsive.css" rel="stylesheet">
+
+
+	</head>
+
+	<body>
+
+		<?php include_once('includes/header.php'); ?>
+
+		<section class="banner_area">
+			<div class="container">
+				<div class="banner_text">
+					<h3>Cart</h3>
+					<ul>
+						<li><a href="index.php">Home</a></li>
+						<li><a href="cart.php">Cart</a></li>
+					</ul>
+				</div>
+			</div>
+		</section>
+
+		<section class="cart_table_area p_100">
+			<div class="container">
+				<div class="table-responsive">
+					<table class="table">
+						<thead>
+							<tr>
+								<th scope="col">Preview</th>
+								<th scope="col">Product</th>
+								<th scope="col">Price</th>
+								<th scope="col">Weight</th>
+								<th scope="col">Quantity</th>
+								<th scope="col">Total</th>
+								<th scope="col"></th>
+							</tr>
+						</thead>
+						<tbody>
+							<?php
+							$userid = $_SESSION['fosuid'];
+							$query = mysqli_query($con, "SELECT tblproduct.Image, tblproduct.ItemName, tblproduct.ItemDes, tblproduct.Weight, 
+        tblproduct.ItemPrice, tblorders.ItemQty, tblorders.ID 
+        FROM tblorders 
+        JOIN tblproduct ON tblproduct.ID = tblorders.FoodId 
+        WHERE tblorders.UserId='$userid' AND tblorders.IsOrderPlaced IS NULL");
+
+
+							$num = mysqli_num_rows($query);
+							$grandtotal = 0;
+
+							if ($num > 0) {
+								while ($row = mysqli_fetch_array($query)) {
+									$total = $row['ItemPrice'] * $row['ItemQty'];
+									$grandtotal += $total;
+							?>
+									<tr>
+										<td>
+											<img src="admin/itemimages/<?php echo $row['Image'] ?>" width="100" height="80" alt="<?php echo $row['ItemName'] ?>">
+										</td>
+										<td><?php echo $row['ItemName'] ?></td>
+										<td>₹<?php echo $row['ItemPrice'] ?></td>
+										<td><?php echo $row['Weight'] ?></td>
+										<td>
+											<button class="qty-btn minus" data-id="<?php echo $row['ID']; ?>">-</button>
+											<span id="qty-<?php echo $row['ID']; ?>"><?php echo $row['ItemQty'] ?></span>
+											<button class="qty-btn plus" data-id="<?php echo $row['ID']; ?>">+</button>
+										</td>
+										<td>₹ <?php echo $total ?></td>
+										<td>
+											<a href="cart.php?delid=<?php echo $row['ID']; ?>" onclick="return confirm('Do you really want to Delete ?');">
+												<i class="fa fa-trash fa-delete" aria-hidden="true"></i>
+											</a>
+										</td>
+									</tr>
+							<?php
+								}
+							}
+							?>
+						</tbody>
+
+					</table>
+				</div>
+				<div class="row cart_total_inner">
+					<div class="col-lg-7"></div>
+					<div class="col-lg-5">
+						<div class="cart_total_text">
+							<div class="cart_head">
+								Cart Total
+							</div>
+							<div class="sub_total">
+								<h5>Sub Total <span>₹<?php echo $grandtotal; ?>
+									</span></h5>
+							</div>
+							<div class="total">
+								<h4>Total <span>₹<?php echo $grandtotal; ?></span></h4>
+							</div>
+							<div class="cart_footer">
+								<a class="pest_btn" href="checkout.php">Proceed to Checkout</a>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</section>
+
+
+		<?php include_once('includes/footer.php'); ?>
+
+
+		<script src="js/jquery-3.2.1.min.js"></script>
+
+		<script src="js/popper.min.js"></script>
+		<script src="js/bootstrap.min.js"></script>
+
+		<script src="vendors/revolution/js/jquery.themepunch.tools.min.js"></script>
+		<script src="vendors/revolution/js/jquery.themepunch.revolution.min.js"></script>
+		<script src="vendors/revolution/js/extensions/revolution.extension.actions.min.js"></script>
+		<script src="vendors/revolution/js/extensions/revolution.extension.video.min.js"></script>
+		<script src="vendors/revolution/js/extensions/revolution.extension.slideanims.min.js"></script>
+		<script src="vendors/revolution/js/extensions/revolution.extension.layeranimation.min.js"></script>
+		<script src="vendors/revolution/js/extensions/revolution.extension.navigation.min.js"></script>
+
+		<script src="vendors/owl-carousel/owl.carousel.min.js"></script>
+		<script src="vendors/magnifc-popup/jquery.magnific-popup.min.js"></script>
+		<script src="vendors/isotope/imagesloaded.pkgd.min.js"></script>
+		<script src="vendors/isotope/isotope.pkgd.min.js"></script>
+		<script src="vendors/datetime-picker/js/moment.min.js"></script>
+		<script src="vendors/datetime-picker/js/bootstrap-datetimepicker.min.js"></script>
+		<script src="vendors/nice-select/js/jquery.nice-select.min.js"></script>
+		<script src="vendors/jquery-ui/jquery-ui.min.js"></script>
+		<script src="vendors/lightbox/simpleLightbox.min.js"></script>
+
+		<script src="js/theme.js"></script>
+		<script>
+			document.addEventListener("DOMContentLoaded", function() {
+				document.querySelectorAll(".qty-btn").forEach(button => {
+					button.addEventListener("click", function() {
+						let orderId = this.getAttribute("data-id");
+						let action = this.classList.contains("plus") ? "increase" : "decrease";
+						let qtyElement = document.getElementById("qty-" + orderId);
+						let totalElement = document.getElementById("total-" + orderId);
+
+						fetch("update_cart.php", {
+								method: "POST",
+								headers: {
+									"Content-Type": "application/x-www-form-urlencoded"
+								},
+								body: `order_id=${orderId}&action=${action}`
+							})
+							.then(response => response.json())
+							.then(data => {
+								qtyElement.textContent = data.newQty;
+								totalElement.textContent = "₹ " + data.updatedTotal;
+
+								// Update stock on the product detail page if it's open
+								let stockElement = document.getElementById("stock-" + orderId);
+								if (stockElement) {
+									stockElement.textContent = "Stock Available: " + data.newStock;
+								}
+							});
+					});
+				});
+			});
+		</script>
+
+
+	</body>
+
+	</html><?php } ?>

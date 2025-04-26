@@ -1,0 +1,177 @@
+/*
+ * This file is part of the Online Bakery Management System.
+ * 
+ * Copyright (c) 2025 Niral Patel
+ * 
+ * This project is licensed under the MIT License.
+ * See the LICENSE file for more details.
+ */
+
+<?php
+session_start();
+include('includes/dbconnection.php');
+
+$msg = ""; // Initialize the variable to prevent "Undefined variable" error
+
+if (isset($_POST['login'])) {
+    $emailcon = $_POST['emailcont'];
+    $password = md5($_POST['password']);
+
+    $query = mysqli_query($con, "SELECT ID FROM tbluser WHERE (Email='$emailcon' OR MobileNumber='$emailcon') AND Password='$password'");
+    $ret = mysqli_fetch_array($query);
+
+    if ($ret > 0) {
+        $_SESSION['fosuid'] = $ret['ID']; // Store user ID in session
+
+        // Redirect to the last visited page if available
+        if (!empty($_SESSION['redirect_url'])) {
+            $redirect_url = $_SESSION['redirect_url'];
+            unset($_SESSION['redirect_url']); // Remove after use
+            header("Location: $redirect_url");
+        } else {
+            header("Location: index.php"); // Default to home page if no stored URL
+        }
+        exit();
+    } else {
+        $msg = "Invalid Details."; // Set error message
+    }
+}
+?>
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <title>Bakery House|| Sign In</title>
+
+
+  <link href="css/font-awesome.min.css" rel="stylesheet">
+  <link href="vendors/linearicons/style.css" rel="stylesheet">
+  <link href="vendors/flat-icon/flaticon.css" rel="stylesheet">
+  <link href="vendors/stroke-icon/style.css" rel="stylesheet">
+
+  <link href="css/bootstrap.min.css" rel="stylesheet">
+
+
+  <link href="vendors/revolution/css/settings.css" rel="stylesheet">
+  <link href="vendors/revolution/css/layers.css" rel="stylesheet">
+  <link href="vendors/revolution/css/navigation.css" rel="stylesheet">
+  <link href="vendors/animate-css/animate.css" rel="stylesheet">
+
+
+  <link href="vendors/owl-carousel/owl.carousel.min.css" rel="stylesheet">
+  <link href="vendors/magnifc-popup/magnific-popup.css" rel="stylesheet">
+
+  <link href="css/style.css" rel="stylesheet">
+  <link href="css/responsive.css" rel="stylesheet">
+
+
+
+</head>
+
+<body>
+
+
+  <?php include_once('includes/header.php'); ?>
+
+  <section class="banner_area">
+    <div class="container">
+      <div class="banner_text">
+        <h3>Login Form</h3>
+        <ul>
+          <li><a href="index.php">Home</a></li>
+          <li><a href="login.php">Sign In</a></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="contact_form_area p_100">
+    <div class="container">
+      <div class="main_title">
+        <h2>Login Form!!</h2>
+        <h5>Fill below details.</h5>
+      </div>
+      <div class="row">
+        <div class="col-lg-7">
+          <p style="font-size:16px; color:red" align="center"> <?php if ($msg) {
+                                                                  echo $msg;
+                                                                }  ?> </p>
+          <form method="post" action="login.php?redirect=<?php echo urlencode($_GET['redirect'] ?? ''); ?>">
+            <div class="form-group col-md-12">
+              <input type="text" class="form-control" name="emailcont" required="true" placeholder="Registered Email or Contact Number" required="true">
+            </div>
+            <h6 style="padding-left: 20px"><a href="forgot-password.php">Forgot Password?</a></h6>
+            <div class="form-group col-md-12" style="padding-top: 20px;">
+              <input type="password" class="form-control" id="password" name="password" placeholder="Password" required="true">
+            </div>
+
+            <div class="form-group col-md-12">
+              <button type="submit" value="submit" name="login" class="btn order_s_btn form-control">Login</button>
+            </div>
+            <div class="form-group col-md-12">
+              <a href="registration.php" class="btn order_s_btn form-control"><i class="ft-user"></i> Register</a> <strong>Register with us!!!!</strong>
+            </div>
+          </form>
+
+        </div>
+        <div class="col-lg-4 offset-md-1">
+          <div class="contact_details">
+            <?php
+
+            $ret = mysqli_query($con, "select * from tblpage where PageType='contactus' ");
+            $cnt = 1;
+            while ($row = mysqli_fetch_array($ret)) {
+
+            ?>
+              <div class="contact_d_item">
+                <h3>Address :</h3>
+                <p><?php echo $row['PageDescription']; ?></p>
+              </div>
+              <div class="contact_d_item">
+                <h5>Phone : <?php echo $row['MobileNumber']; ?></h5>
+                <h5>Email : <?php echo $row['Email']; ?></h5>
+              </div>
+
+          </div>
+        </div><?php } ?>
+      </div>
+    </div>
+  </section>
+
+
+  <?php include_once('includes/footer.php'); ?>
+
+  <script src="js/jquery-3.2.1.min.js"></script>
+
+  <script src="js/popper.min.js"></script>
+  <script src="js/bootstrap.min.js"></script>
+
+  <script src="vendors/revolution/js/jquery.themepunch.tools.min.js"></script>
+  <script src="vendors/revolution/js/jquery.themepunch.revolution.min.js"></script>
+  <script src="vendors/revolution/js/extensions/revolution.extension.actions.min.js"></script>
+  <script src="vendors/revolution/js/extensions/revolution.extension.video.min.js"></script>
+  <script src="vendors/revolution/js/extensions/revolution.extension.slideanims.min.js"></script>
+  <script src="vendors/revolution/js/extensions/revolution.extension.layeranimation.min.js"></script>
+  <script src="vendors/revolution/js/extensions/revolution.extension.navigation.min.js"></script>
+
+  <script src="vendors/owl-carousel/owl.carousel.min.js"></script>
+  <script src="vendors/magnifc-popup/jquery.magnific-popup.min.js"></script>
+  <script src="vendors/datetime-picker/js/moment.min.js"></script>
+  <script src="vendors/datetime-picker/js/bootstrap-datetimepicker.min.js"></script>
+  <script src="vendors/nice-select/js/jquery.nice-select.min.js"></script>
+  <script src="vendors/jquery-ui/jquery-ui.min.js"></script>
+  <script src="vendors/lightbox/simpleLightbox.min.js"></script>
+
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCjCGmQ0Uq4exrzdcL6rvxywDDOvfAu6eE"></script>
+  <script src="js/gmaps.min.js"></script>
+  <script src="js/map-active.js"></script>
+
+
+  <script src="js/jquery.form.js"></script>
+  <script src="js/jquery.validate.min.js"></script>
+  <script src="js/contact.js"></script>
+
+  <script src="js/theme.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,187 @@
+/*
+ * This file is part of the Online Bakery Management System.
+ * 
+ * Copyright (c) 2025 Niral Patel
+ * 
+ * This project is licensed under the MIT License.
+ * See the LICENSE file for more details.
+ */
+
+<?php
+session_start();
+error_reporting(0);
+include_once('includes/dbconnection.php');
+
+if (strlen($_SESSION['fosuid'] == 0)) {
+	header('location:logout.php');
+} else {
+	// Placing order
+	if (isset($_POST['placeorder'])) {
+		$fnaobno = $_POST['flatbldgnumber'];
+		$street = $_POST['streename'];
+		$area = $_POST['area'];
+		$lndmark = $_POST['landmark'];
+		$city = $_POST['city'];
+		$cod = $_POST['cod'];
+		$userid = $_SESSION['fosuid'];
+
+		// Generating order number
+		$orderno = mt_rand(100000000, 999999999);
+		$query = "UPDATE tblorders SET OrderNumber='$orderno', IsOrderPlaced='1', CashonDelivery='$cod' WHERE UserId='$userid' AND IsOrderPlaced IS NULL;";
+		$query .= "INSERT INTO tblorderaddresses(UserId, Ordernumber, Flatnobuldngno, StreetName, Area, Landmark, City)
+                   VALUES('$userid','$orderno','$fnaobno','$street','$area','$lndmark','$city');";
+
+		$result = mysqli_multi_query($con, $query);
+		if ($result) {
+			echo '<script>alert("Your order placed successfully. Order number is ' . $orderno . '")</script>';
+			echo "<script>window.location.href='my-order.php'</script>";
+		}
+	}
+?>
+
+	<!DOCTYPE html>
+	<html lang="en">
+
+	<head>
+		<title>Bakery House || Checkout Page</title>
+
+		<link href="css/font-awesome.min.css" rel="stylesheet">
+		<link href="vendors/linearicons/style.css" rel="stylesheet">
+		<link href="vendors/flat-icon/flaticon.css" rel="stylesheet">
+		<link href="vendors/stroke-icon/style.css" rel="stylesheet">
+		<link href="css/bootstrap.min.css" rel="stylesheet">
+		<link href="vendors/revolution/css/settings.css" rel="stylesheet">
+		<link href="vendors/revolution/css/layers.css" rel="stylesheet">
+		<link href="vendors/revolution/css/navigation.css" rel="stylesheet">
+		<link href="vendors/animate-css/animate.css" rel="stylesheet">
+		<link href="vendors/owl-carousel/owl.carousel.min.css" rel="stylesheet">
+		<link href="vendors/magnifc-popup/magnific-popup.css" rel="stylesheet">
+		<link href="vendors/jquery-ui/jquery-ui.min.css" rel="stylesheet">
+		<link href="vendors/nice-select/css/nice-select.css" rel="stylesheet">
+		<link href="css/style.css" rel="stylesheet">
+		<link href="css/responsive.css" rel="stylesheet">
+	</head>
+
+	<body>
+
+		<?php include_once('includes/header.php'); ?>
+
+		<section class="banner_area">
+			<div class="container">
+				<div class="banner_text">
+					<h3>Checkout</h3>
+					<ul>
+						<li><a href="index.php">Home</a></li>
+						<li><a href="checkout.php">Checkout</a></li>
+					</ul>
+				</div>
+			</div>
+		</section>
+
+		<section class="billing_details_area p_100">
+			<div class="container">
+				<div class="row">
+					<div class="col-lg-7">
+						<div class="main_title">
+							<h2>Billing Details</h2>
+						</div>
+						<div class="billing_form_area">
+							<form class="billing_form row" action="" method="post" id="contactForm">
+								<div class="form-group col-md-6">
+									<label>Flat or Building Number *</label>
+									<input type="text" name="flatbldgnumber" class="form-control" required>
+								</div>
+								<div class="form-group col-md-6">
+									<label>Street Name *</label>
+									<input type="text" name="streename" class="form-control" required>
+								</div>
+								<div class="form-group col-md-12">
+									<label>Area *</label>
+									<input type="text" name="area" class="form-control" required>
+								</div>
+								<div class="form-group col-md-12">
+									<label>Landmark (if any)</label>
+									<input type="text" name="landmark" class="form-control">
+								</div>
+								<div class="form-group col-md-12">
+									<label>City *</label>
+									<input type="text" name="city" class="form-control" required>
+								</div>
+						</div>
+					</div>
+
+					<div class="col-lg-5">
+						<div class="order_box_price">
+							<div class="main_title">
+								<h2>Your Order</h2>
+							</div>
+							<div class="payment_list">
+								<div class="price_single_cost">
+									<h5>Product <span>Total</span></h5>
+									<?php
+									$userid = $_SESSION['fosuid'];
+									$grandtotal = 0;
+
+									$query = mysqli_query($con, "SELECT tblproduct.ItemName, tblproduct.ItemPrice, tblorders.ItemQty 
+                                FROM tblorders 
+                                JOIN tblproduct ON tblproduct.ID = tblorders.FoodId 
+                                WHERE tblorders.UserId='$userid' AND tblorders.IsOrderPlaced IS NULL");
+
+									while ($row = mysqli_fetch_array($query)) {
+										$total = $row['ItemPrice'] * $row['ItemQty'];
+										$grandtotal += $total;
+									?>
+										<h5><?php echo $row['ItemName']; ?> (x<?php echo $row['ItemQty']; ?>) <span>₹<?php echo $total; ?></span></h5>
+									<?php } ?>
+									<h4>Subtotal <span>₹<?php echo $grandtotal; ?></span></h4>
+									<h5>Shipping & Handling <span class="text_f">Free</span></h5>
+									<h3>Total <span>₹<?php echo $grandtotal; ?></span></h3>
+								</div>
+
+								<div id="accordion" class="accordion_area">
+									<div class="card">
+										<div class="card-header" id="headingOne">
+											<h5 class="mb-0">
+												<input type="checkbox" name="cod" id="cod" value="Cash on Delivery" required>
+												Cash on Delivery (COD)
+											</h5>
+										</div>
+									</div>
+								</div>
+
+								<button type="submit" name="placeorder" class="btn pest_btn">Place Order</button>
+							</div>
+							</form>
+						</div>
+					</div>
+				</div>
+			</div>
+		</section>
+
+		<?php include_once('includes/footer.php'); ?>
+
+		<script src="js/jquery-3.2.1.min.js"></script>
+		<script src="js/popper.min.js"></script>
+		<script src="js/bootstrap.min.js"></script>
+		<script src="vendors/revolution/js/jquery.themepunch.tools.min.js"></script>
+		<script src="vendors/revolution/js/jquery.themepunch.revolution.min.js"></script>
+		<script src="vendors/revolution/js/extensions/revolution.extension.actions.min.js"></script>
+		<script src="vendors/revolution/js/extensions/revolution.extension.video.min.js"></script>
+		<script src="vendors/revolution/js/extensions/revolution.extension.slideanims.min.js"></script>
+		<script src="vendors/revolution/js/extensions/revolution.extension.layeranimation.min.js"></script>
+		<script src="vendors/revolution/js/extensions/revolution.extension.navigation.min.js"></script>
+		<script src="vendors/owl-carousel/owl.carousel.min.js"></script>
+		<script src="vendors/magnifc-popup/jquery.magnific-popup.min.js"></script>
+		<script src="vendors/isotope/imagesloaded.pkgd.min.js"></script>
+		<script src="vendors/isotope/isotope.pkgd.min.js"></script>
+		<script src="vendors/datetime-picker/js/moment.min.js"></script>
+		<script src="vendors/datetime-picker/js/bootstrap-datetimepicker.min.js"></script>
+		<script src="vendors/nice-select/js/jquery.nice-select.min.js"></script>
+		<script src="vendors/jquery-ui/jquery-ui.min.js"></script>
+		<script src="vendors/lightbox/simpleLightbox.min.js"></script>
+		<script src="js/theme.js"></script>
+
+	</body>
+
+	</html>
+<?php } ?>

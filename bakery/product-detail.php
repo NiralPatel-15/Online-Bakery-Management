@@ -1,0 +1,230 @@
+/*
+ * This file is part of the Online Bakery Management System.
+ * 
+ * Copyright (c) 2025 Niral Patel
+ * 
+ * This project is licensed under the MIT License.
+ * See the LICENSE file for more details.
+ */
+
+<?php
+session_start();
+error_reporting(0);
+include('includes/dbconnection.php');
+
+if (isset($_POST['submit'])) {
+  if (!isset($_SESSION['fosuid'])) {
+    $_SESSION['redirect_url'] = $_SERVER['REQUEST_URI'];
+    header("Location: login.php");
+    exit();
+  }
+
+  $foodid = $_POST['foodid'];
+  $itemQty = intval($_POST['ItemQty']); // Get selected quantity
+  $userid = $_SESSION['fosuid'];
+
+  // Fetch the current stock
+  $query = mysqli_query($con, "SELECT ItemQty FROM tblproduct WHERE ID='$foodid'");
+  $row = mysqli_fetch_assoc($query);
+  $availableQty = intval($row['ItemQty']);
+
+  // Check if stock is sufficient
+  if ($itemQty > $availableQty) {
+    echo "<script>alert('Not enough stock available!');</script>";
+  } else {
+    // Insert order into tblorders
+    $orderQuery = mysqli_query($con, "INSERT INTO tblorders(UserId, FoodId, ItemQty) VALUES('$userid', '$foodid', '$itemQty')");
+
+    if ($orderQuery) {
+      // Deduct the ordered quantity from stock
+      $newQty = $availableQty - $itemQty;
+      mysqli_query($con, "UPDATE tblproduct SET ItemQty='$newQty' WHERE ID='$foodid'");
+
+      echo "<script>alert('Item has been added to the cart');</script>";
+    } else {
+      echo "<script>alert('Something went wrong.');</script>";
+    }
+  }
+}
+
+
+
+?>
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <title> Bakery House || product Detail</title>
+
+  <link href="css/font-awesome.min.css" rel="stylesheet">
+  <link href="vendors/linearicons/style.css" rel="stylesheet">
+  <link href="vendors/flat-icon/flaticon.css" rel="stylesheet">
+  <link href="vendors/stroke-icon/style.css" rel="stylesheet">
+  <link href="css/bootstrap.min.css" rel="stylesheet">
+
+
+  <link href="vendors/revolution/css/settings.css" rel="stylesheet">
+  <link href="vendors/revolution/css/layers.css" rel="stylesheet">
+  <link href="vendors/revolution/css/navigation.css" rel="stylesheet">
+  <link href="vendors/animate-css/animate.css" rel="stylesheet">
+
+
+  <link href="vendors/owl-carousel/owl.carousel.min.css" rel="stylesheet">
+  <link href="vendors/magnifc-popup/magnific-popup.css" rel="stylesheet">
+
+  <link href="css/style.css" rel="stylesheet">
+  <link href="css/responsive.css" rel="stylesheet">
+
+
+</head>
+
+<body>
+
+
+  <?php include_once('includes/header.php'); ?>
+
+  <section class="banner_area">
+    <div class="container">
+      <div class="banner_text">
+        <h3>Product Detail</h3>
+        <ul>
+          <li><a href="index.php">Home</a></li>
+          <li><a href="product-detail.php">Product Detail</a></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="special_area p_100">
+    <div class="container">
+      <div class="main_title">
+        <h2>Detail of Product</h2>
+        <h5>Baked Cakes,Muffins,Cookies,Pastries,Waffles,Bread,Donut & Pies! Taste The Magic In Every Bites.</h5>
+      </div>
+
+      <div class="special_item_inner">
+        <div class="specail_item">
+          <div class="row">
+            <?php
+            $cid = $_GET['fid'];
+            $ret = mysqli_query($con, "select * from tblproduct where ID='$cid'");
+            $cnt = 1;
+            while ($row = mysqli_fetch_array($ret)) {
+
+            ?>
+              <div class="col-lg-4">
+                <div class="s_left_img">
+                  <img class="img-fluid" src="admin/itemimages/<?php echo $row['Image']; ?>" alt="">
+                </div>
+              </div>
+              <div class="col-lg-8">
+                <div class="special_item_text">
+                  <h4><?php echo $row['ItemName']; ?></h4>
+                  <p><strong>Type of product:</strong> <?php echo $row['CategoryName']; ?></p>
+                  <p><strong>Price:</strong> ₹ <?php echo $row['ItemPrice']; ?></p>
+                  <p><strong>Weight:</strong> <?php echo $row['Weight']; ?>.</p>
+                  <p><strong>Product Detail:</strong> <?php echo $row['ItemDes']; ?>.</p>
+                  <p><strong>Price per unit:</strong> <span id="productPrice">₹ <?php echo $row['ItemPrice']; ?></span></p>
+                  <p><strong>Total Price:</strong> <span id="totalPrice">₹ <?php echo $row['ItemPrice']; ?></span></p>
+
+
+                  <?php
+                  // Fetch available stock from 'ItemQty' column
+                  $availableQty = intval($row['ItemQty']);
+
+                  // Check if the product is in stock
+                  if ($availableQty > 0) {
+                  ?>
+                    <p><strong>Available Quantity:</strong> <span id="availableQty"><?php echo $availableQty; ?></span></p>
+
+
+                    <form method="post">
+                      <input type="hidden" name="foodid" value="<?php echo $row['ID']; ?>">
+
+                      <label for="ItemQty"><strong>Quantity:</strong></label>
+                      <input type="number" name="ItemQty" id="ItemQty" min="1" max="<?php echo $availableQty; ?>" value="1" required>
+                      <br />
+                      <button type="submit" name="submit" class="pest_btn">Add to Cart</button>
+                    </form>
+                  <?php
+                  } else {
+                    echo "<p style='color:red;'><strong>Out of Stock</strong></p>";
+                  }
+                  ?>
+                <?php } ?>
+                </div>
+              </div>
+
+          </div>
+        </div>
+      </div>
+  </section>
+
+  <?php include_once('includes/footer.php'); ?>
+
+
+
+  <script src="js/jquery-3.2.1.min.js"></script>
+
+  <script src="js/popper.min.js"></script>
+  <script src="js/bootstrap.min.js"></script>
+
+  <script src="vendors/revolution/js/jquery.themepunch.tools.min.js"></script>
+  <script src="vendors/revolution/js/jquery.themepunch.revolution.min.js"></script>
+  <script src="vendors/revolution/js/extensions/revolution.extension.actions.min.js"></script>
+  <script src="vendors/revolution/js/extensions/revolution.extension.video.min.js"></script>
+  <script src="vendors/revolution/js/extensions/revolution.extension.slideanims.min.js"></script>
+  <script src="vendors/revolution/js/extensions/revolution.extension.layeranimation.min.js"></script>
+  <script src="vendors/revolution/js/extensions/revolution.extension.navigation.min.js"></script>
+
+  <script src="vendors/owl-carousel/owl.carousel.min.js"></script>
+  <script src="vendors/magnifc-popup/jquery.magnific-popup.min.js"></script>
+  <script src="vendors/isotope/imagesloaded.pkgd.min.js"></script>
+  <script src="vendors/isotope/isotope.pkgd.min.js"></script>
+  <script src="vendors/datetime-picker/js/moment.min.js"></script>
+  <script src="vendors/datetime-picker/js/bootstrap-datetimepicker.min.js"></script>
+  <script src="vendors/nice-select/js/jquery.nice-select.min.js"></script>
+  <script src="vendors/jquery-ui/jquery-ui.min.js"></script>
+  <script src="vendors/lightbox/simpleLightbox.min.js"></script>
+
+  <script src="js/theme.js"></script>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      // Get necessary elements
+      let quantityInput = document.getElementById("ItemQty");
+      let priceElement = document.getElementById("productPrice");
+      let totalPriceElement = document.getElementById("totalPrice");
+      let availableQty = parseInt(document.getElementById("availableQty").innerText);
+
+      // Get the product price
+      let unitPrice = parseFloat(priceElement.innerText.replace("₹", "").trim());
+
+      // Function to update total price
+      function updateTotalPrice() {
+        let selectedQty = parseInt(quantityInput.value);
+        let newTotal = unitPrice * selectedQty;
+        totalPriceElement.innerText = "₹ " + newTotal.toFixed(2);
+      }
+
+      // Event listener for quantity change
+      quantityInput.addEventListener("input", function() {
+        let selectedQty = parseInt(quantityInput.value);
+
+        if (selectedQty < 1) {
+          quantityInput.value = 1;
+        } else if (selectedQty > availableQty) {
+          quantityInput.value = availableQty;
+        }
+
+        updateTotalPrice();
+      });
+
+      // Initialize the total price
+      updateTotalPrice();
+    });
+  </script>
+
+</body>
+
+</html>
