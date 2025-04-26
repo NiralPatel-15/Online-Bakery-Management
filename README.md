@@ -7,14 +7,12 @@ An online web application to manage bakery products, customers, orders, and inve
 ## 📸 Screenshots
 
 |                                        Home Page                                          |
-|--------------------------------------------|----------------------------------------------|
-| ![image](https://github.com/user-attachments/assets/a4b2fc44-d098-427c-8c43-459433c2f9b3) |
+
+  ![image](https://github.com/user-attachments/assets/a4b2fc44-d098-427c-8c43-459433c2f9b3) 
 
 |                                 Admin Dashboard                                           |
-|--------------------------------------|----------------------------------------------------|
-| ![image](https://github.com/user-attachments/assets/150fa5b3-c9be-4156-b595-2524ecd2d28b) |
 
-> Add your actual image files inside a `screenshots/` folder in your repo.
+  ![image](https://github.com/user-attachments/assets/150fa5b3-c9be-4156-b595-2524ecd2d28b) 
 
 ---
 
