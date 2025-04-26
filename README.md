@@ -23,7 +23,7 @@ An online web application to manage bakery products, customers, orders, and inve
 - 📦 Inventory Management: Track product quantity
 - 📑 Order Tracking: View and manage customer orders
 - 🔐 Admin Panel: Secure login and control panel
-- 📧 Contact Form and Feedback (optional)
+- 📧 Contact Form and Feedback 
 
 ---
 
@@ -37,4 +37,28 @@ An online web application to manage bakery products, customers, orders, and inve
 | Server      | Apache (XAMPP/LAMP)   | 
 
 ---
+
+## 🤝 Contribution Guidelines
+
+1.Fork the repository
+
+2.Create your feature branch: git checkout -b feature/YourFeature
+
+3.Commit your changes: git commit -m "Add YourFeature"
+
+4.Push to the branch: git push origin feature/YourFeature
+
+5.Open a Pull Request
+
+---
+
+## 🪪 License 
+This project is licensed under the MIT License
+
+---
+
+## 👤 Author: Niral Patel<br>
+      GitHub: @NiralPatel-15
+      Email: patelniral0213@gmail.com
+
 
