@@ -57,5 +57,11 @@ This project is licensed under the MIT License
 
 ---
 
+## 👤 Author: Niral Patel<br>
+      GitHub: @NiralPatel-15
+      Email: patelniral0213@gmail.com
+
+---
+
 
 
