@@ -1,0 +1,39 @@
+<?php
+session_start();
+include_once('includes/dbconnection.php');
+
+if (isset($_POST['order_id']) && isset($_POST['action'])) {
+    $orderId = intval($_POST['order_id']);
+    $action = $_POST['action'];
+
+    // Get current quantity and product details
+    $query = mysqli_query($con, "SELECT tblorders.ItemQty, tblproduct.ID as ProductID, tblproduct.ItemQty as StockQty, tblproduct.ItemPrice 
+                                FROM tblorders 
+                                JOIN tblproduct ON tblorders.FoodId = tblproduct.ID 
+                                WHERE tblorders.ID='$orderId'");
+    $row = mysqli_fetch_assoc($query);
+    $currentQty = $row['ItemQty'];
+    $productID = $row['ProductID'];
+    $stockQty = $row['StockQty'];
+    $itemPrice = $row['ItemPrice'];
+
+    if ($action === 'increase' && $stockQty > $currentQty) {
+        $newQty = $currentQty + 1;
+    } elseif ($action === 'decrease' && $currentQty > 1) {
+        $newQty = $currentQty - 1;
+    } else {
+        $newQty = $currentQty;
+    }
+
+    // Update cart quantity
+    mysqli_query($con, "UPDATE tblorders SET ItemQty='$newQty' WHERE ID='$orderId'");
+
+    // Update product stock (reduce stock if increased in cart, add back if decreased)
+    $newStockQty = $stockQty - ($newQty - $currentQty);
+    mysqli_query($con, "UPDATE tblproduct SET ItemQty='$newStockQty' WHERE ID='$productID'");
+
+    // Fetch updated total price
+    $updatedTotal = $itemPrice * $newQty;
+
+    echo json_encode(['newQty' => $newQty, 'updatedTotal' => $updatedTotal, 'newStock' => $newStockQty]);
+}

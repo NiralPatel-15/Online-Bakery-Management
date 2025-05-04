@@ -1,0 +1,23 @@
+/*
+ * This file is part of the Online Bakery Management System.
+ * 
+ * Copyright (c) 2025 Niral Patel
+ * 
+ * This project is licensed under the MIT License.
+ * See the LICENSE file for more details.
+ */
+
+span.cm-underlined {
+  text-decoration: underline;
+}
+span.cm-strikethrough {
+  text-decoration: line-through;
+}
+span.cm-brace {
+  color: #170;
+  font-weight: bold;
+}
+span.cm-table {
+  color: blue;
+  font-weight: bold;
+}
